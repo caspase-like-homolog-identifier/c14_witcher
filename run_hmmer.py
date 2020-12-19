@@ -1,4 +1,4 @@
-#!/usr/bin/env pytho
+#!/usr/bin/env python
 import subprocess
 import sys
 import os
@@ -10,21 +10,22 @@ class RunHmmer(object):
     def __init__(self, hmmer_cmd, hmmfile, seqfile, *args):
         
         """instatiate hmmer command line wrapper object"""
-        
+
+        #hmmsearch [options] <hmmfile> <seqdb>
         self.hmmer_cmd = hmmer_cmd
         self._options = list(args)
         self._hmmfile = hmmfile
         self._seqfile = seqfile
         #HMMER_DB="/home/drewx/Dropbox/In silico identification of caspase-like homologs/HMMs"    
-        #assert os.environ.get('HMMER_DB',False), 'HMMER_DB environmental variable is not set' 
-
+        #assert os.environ.get('HMMER_DB',False), 'HMMER_DB environmental variable is not set'
+        
     def __str__(self):
         
         cmd = "{} ".format(self.hmmer_cmd)
         for opt in self.options:
             cmd = " ".join([cmd, opt])
-            
-        cmd  =  " ".join(cmd, self.hmmer_cmd, self.seqfile)
+     
+        cmd  =  " ".join([cmd, self.hmmfile, self._seqfile])
             
         return cmd.strip()
 
@@ -35,7 +36,7 @@ class RunHmmer(object):
 
     @options.setter
     def options(self, option):
-        
+
         if self._options:
             self._options.append(option)
         else:
@@ -46,9 +47,26 @@ class RunHmmer(object):
 
 
     @property
-    def hmmfile(self)
+    def seqfile(self):
+        return self._seqfile    
+    
+    @seqfile.setter
+    def seqfile(self, seqfile):
+        assert os.path.exist(seqfilwe), "File does not exist"
+        self._seqfile =  seqfile
 
+
+    @property
+    def hmmfile(self):
+        return self._hmmfile
+
+
+    @hmmfile.setter
+    def hmmfile(self, hmmfile):
+        assert os.path.exist(hmmfile), "File does not exist"
+        self._hmmfile =  hmmfile
         
+             
     def __call__(self, stdin=None, stdout=True, stderr=True, cwd=None, env=None):
         #this code is modified from biopython Applicaitons module:__init__.py
         
@@ -77,6 +95,8 @@ class RunHmmer(object):
                 use_shell = True
             else:
                 use_shell = False
+                
+        print(self)
         child_process = subprocess.Popen(
             str(self),
             stdin=subprocess.PIPE,
@@ -110,9 +130,9 @@ class RunHmmer(object):
         return stdout_str, stderr_str
  
 
-if __name__ == '__main__':
-    hmmsearch = RunHmmer('hmmersearch')
-    print(hmmsearch)
+if __name__ == '__main__':    
+    hmmsearch = RunHmmer('hmmsearch','Peptidase_C14.hmm', 'in_file.fasta', "--pfamtblout myfile")
+    print(hmmsearch())
     #hmmalign [-options] <hmmfile> <seqfile>
     #parser = argparse.ArgumentParser(description="")
     #parser.add_argument('seqfile', action='store', type=str)
