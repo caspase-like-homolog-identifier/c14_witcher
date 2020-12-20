@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import subprocess
+import argparse
 import sys
 import os
 
@@ -127,14 +128,25 @@ class RunHmmer(object):
 
         if return_code:
             raise Exception(return_code, str(self), stdout_str, stderr_str)
+        
         return stdout_str, stderr_str
- 
 
-if __name__ == '__main__':    
-    hmmsearch = RunHmmer('hmmsearch','Peptidase_C14.hmm', 'in_file.fasta', "--pfamtblout myfile")
-    print(hmmsearch())
-    #hmmalign [-options] <hmmfile> <seqfile>
-    #parser = argparse.ArgumentParser(description="")
-    #parser.add_argument('seqfile', action='store', type=str)
-    #args = parser.parse_args()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument('seqfile', action='store', type=str)
+    parser.add_argument('-m','--hmm', default = 'Peptidase_C14.hmm', type=str)
+    args = parser.parse_args()
+    
+    #print(args)
+    hmmsearch = RunHmmer('hmmsearch', args.hmm, args.seqfile, "--pfamtblout in_file.tablout", "-A in_file.ali")
+    stdout, stderr =  hmmsearch()
+    #The Alignment option of hmmsearch appearch to achieve the hmmalign --trim option. Needs to be further tested
+    hmmalign = RunHmmer('hmmalign', args.hmm, 'in_file.ali', "--trim", "-o in_file_trim.ali")
+    stdout, sterr =  hmmalign()
+    #print(stdout.splitlines())
+    #Anything remain at this point we have some confidence is a peptidase_c14 
+    
+
+        
     
