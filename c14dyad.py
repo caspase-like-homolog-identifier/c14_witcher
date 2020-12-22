@@ -36,6 +36,7 @@ if  __name__ ==  '__main__':
     parser = argparse.ArgumentParser("Find P20 Cystine and Histidine dyads")
     parser.add_argument('sequences',help ="sequences file", type=argparse.FileType('r'))
     parser.add_argument('-f','--format', default = "fasta" ,help ="sequences format")
+    parser.add_argument('-g','--gap_char', default = "-" ,help ="gap character in alignment")
     args = parser.parse_args()
 
     prosite = PrositePattern()
@@ -43,7 +44,7 @@ if  __name__ ==  '__main__':
     
     j = 0
     for i,rec in enumerate(records, 1):
-        cys = "".join(prosite.Caspase_CYS(str(rec.seq.ungap('-'))))
-        his = "".join(prosite.Caspase_HIS(str(rec.seq.ungap('-'))))
+        cys = "".join(prosite.Caspase_CYS(str(rec.seq.ungap(args.gap_char))))
+        his = "".join(prosite.Caspase_HIS(str(rec.seq.ungap(args.gap_char))))
         print("{:<20}{:<35}{:<50}".format(rec.id,his,cys))
     
