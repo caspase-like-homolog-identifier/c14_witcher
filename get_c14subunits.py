@@ -7,41 +7,44 @@ import warnings
 
 
 
-
 class C14Suunitst(object):
 
-    def __init__(self, align_sequence, sub_seq):
+    def __init__(self, msa, cys_dict):
         
-        self.align_sequence = align_sequence
-        self.sub_seq = sub_seq
-        
-    def local_align(self):
+        self.msa = msa
+        self.cys_dict = cys_dict
 
-        alignments = pairwise2.align.localms(self.align_sequence, self.sub_seq, 5, -4, -2, -1, one_alignment_only = True)
-        #print(pairwise2.format_alignment(*alignments[0]))
         
-        return alignments[0][4]
+    def cys_location(self):
+
+        stop_lists = []
+        for seq in self.msa:
+            cys_active_site =  self.cys_dict.get(seq.id, False)
+            if cys_active_site:
+                #print(cys_active_site)
+                alignments = pairwise2.align.localms(seq.seq, cys_active_site, 5, -4, -2, -1, one_alignment_only = True)
+                #print(pairwise2.format_alignment(*alignments[0]))
+                stop_lists.append(alignments[0][4])
+        stop_counter = collections.Counter(stop_lists)
+        cys_end = max(dict(stop_counter).items(), key=operator.itemgetter(1))
+        counts_totals = sum(stop_counter.values())
+        print(stop_counter)
+        print("Cysteine position:{:>3}\nConfidence: {:>10.0%}\n".format(cys_end[0],cys_end[1]/float(counts_totals)))
+
+        return cys_end[0]
+
+    def msa_slice(self, start, stop):
+
+        return self.msa[:,start:stop]
         
+
         
 if __name__ == '__main__':
-    msa =  AlignIO.read("MCA.fasta","fasta")
-    c14_data = open("c14.data").read().splitlines()
-    data = dict([ (line.split()[0],line.split()[1]) for line in c14_data if len(line.split()) > 1 ])
-    i = 0
-    stop_lists = []
-    for seq in msa:
-        dyad = data.get(seq.id,False)
-        if dyad:
-            #print(seq.seq)
-            c14 = C14Suunitst(str(seq.seq).replace("-",'.'), dyad)
-            stop = c14.local_align()
-            stop_lists.append(stop)
-        i += 1
-        if i == 5:
-            break
     
-    stop_counter = collections.Counter(stop_lists)
-    cys_end = max(dict(stop_counter).items(), key=operator.itemgetter(1))
-    counts_totals = sum(stop_counter.values())
-    print(stop_counter)
-    print("Cysteine position:{:>4}\nConfidence: {:>13.2%}\n".format(cys_end[0],cys_end[1]/float(counts_totals)))
+    msa =  AlignIO.read("MCA.fasta","fasta")
+    c14_data = open("c14.data").read().splitlines()    
+    data = dict([ (line.split()[0],line.split()[2]) for line in c14_data if len(line.split()) > 2 ])
+    c14 = C14Suunitst(msa, data)
+    stop = c14.cys_location()
+    print(c14.msa_slice(stop, stop+10))
+    
