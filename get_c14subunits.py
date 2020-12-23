@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from Bio import pairwise2
 from Bio import AlignIO
+import operator
 import collections
 import warnings
 
@@ -38,7 +39,9 @@ if __name__ == '__main__':
         i += 1
         if i == 5:
             break
-        
-    print(collections.Counter(stop_lists))
-
-        
+    
+    stop_counter = collections.Counter(stop_lists)
+    cys_end = max(dict(stop_counter).items(), key=operator.itemgetter(1))
+    counts_totals = sum(stop_counter.values())
+    print(stop_counter)
+    print("Cysteine position:{:>4}\nConfidence: {:>13.2%}\n".format(cys_end[0],cys_end[1]/float(counts_totals)))
