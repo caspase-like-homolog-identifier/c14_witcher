@@ -14,7 +14,6 @@ c14reference = pd.read_csv("c14reference.tsv", delimiter = "\t")
 c14reference.shape
 
 c14_ref = c14reference.dropna()
-c14_ref.shape
 
 feature_cols = c14_ref.columns[:-1]
 
