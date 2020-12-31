@@ -8,14 +8,14 @@ import os
 class RunHmmer(object):
     #based on the biopython application abstract base class
 
-    def __init__(self, hmmer_cmd, hmmfile, seqfile, align_out, *args):
+    def __init__(self, hmmer_cmd, hmmfile, seqfile, align_out, domtblout, *args):
         
         """instatiate hmmer command line wrapper object"""
 
         #hmmsearch [options] <hmmfile> <seqdb>
         self.hmmer_cmd = hmmer_cmd
         self._options = list(args)
-        self._options.append("-A {}".format(align_out))
+        self._options =  self._options + ["-A {}".format(align_out), "--domtblout {}".format(domtblout)]
         self._hmmfile = hmmfile
         self._seqfile = seqfile
         #HMMER_DB="/home/drewx/Dropbox/In silico identification of caspase-like homologs/HMMs"    
