@@ -8,13 +8,14 @@ import os
 class RunHmmer(object):
     #based on the biopython application abstract base class
 
-    def __init__(self, hmmer_cmd, hmmfile, seqfile, *args):
+    def __init__(self, hmmer_cmd, hmmfile, seqfile, align_out, *args):
         
         """instatiate hmmer command line wrapper object"""
 
         #hmmsearch [options] <hmmfile> <seqdb>
         self.hmmer_cmd = hmmer_cmd
         self._options = list(args)
+        self._options.append("-A {}".format(align_out))
         self._hmmfile = hmmfile
         self._seqfile = seqfile
         #HMMER_DB="/home/drewx/Dropbox/In silico identification of caspase-like homologs/HMMs"    
@@ -133,17 +134,19 @@ class RunHmmer(object):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="")
-    parser.add_argument('seqfile', action='store', type=str)
-    parser.add_argument('-m','--hmm', default = 'Peptidase_C14.hmm', type=str)
-    args = parser.parse_args()
+    #parser = argparse.ArgumentParser(description="")
+    #parser.add_argument('seqfile', action='store', type=str)
+    #parser.add_argument('-m','--hmm', default = 'Peptidase_C14.hmm', type=str)
+    #args = parser.parse_args()
     
     #print(args)
-    hmmsearch = RunHmmer('hmmsearch', args.hmm, args.seqfile, "--pfamtblout in_file.tablout", "-A in_file.ali")
-    stdout, stderr =  hmmsearch()
+    #hmmsearch = RunHmmer('hmmsearch', args.hmm, args.seqfile, "--pfamtblout in_file.tablout", "-A in_file.ali")
+    #stdout, stderr =  hmmsearch()
     #The Alignment option of hmmsearch appearch to achieve the hmmalign --trim option. Needs to be further tested
-    hmmalign = RunHmmer('hmmalign', args.hmm, 'in_file.ali', "--trim", "-o in_file_trim.ali")
-    stdout, sterr =  hmmalign()
+    #hmmalign = RunHmmer('hmmalign', args.hmm, 'in_file.ali', "--trim", "-o in_file_trim.ali")
+    #stdout, sterr =  hmmalign()
+    hmmalign_p20 = RunHmmer('hmmalign', 'p20.hmm', 'in_file_trim.ali', "--trim", "-o in_file_p20.ali")
+    hmmalign_p20()
     #print(stdout.splitlines())
     #Anything remain at this point we have some confidence is a peptidase_c14 
     
