@@ -54,7 +54,7 @@ class RunHmmer(object):
     
     @seqfile.setter
     def seqfile(self, seqfile):
-        assert os.path.exist(seqfilwe), "File does not exist"
+        assert os.path.exists(seqfilwe), "File does not exist"
         self._seqfile =  seqfile
 
 
@@ -65,7 +65,7 @@ class RunHmmer(object):
 
     @hmmfile.setter
     def hmmfile(self, hmmfile):
-        assert os.path.exist(hmmfile), "File does not exist"
+        assert os.path.exists(hmmfile), "File does not exist"
         self._hmmfile =  hmmfile
         
              
