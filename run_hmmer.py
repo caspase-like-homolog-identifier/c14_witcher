@@ -14,8 +14,9 @@ class RunHmmer(object):
 
         #hmmsearch [options] <hmmfile> <seqdb>
         self.hmmer_cmd = hmmer_cmd
+        self.align_out = align_out
+        self.domtblout = domtblout
         self._options = list(args)
-        self._options =  self._options + ["-A {}".format(align_out), "--domtblout {}".format(domtblout)]
         self._hmmfile = hmmfile
         self._seqfile = seqfile
         #HMMER_DB="/home/drewx/Dropbox/In silico identification of caspase-like homologs/HMMs"    
@@ -24,10 +25,15 @@ class RunHmmer(object):
     def __str__(self):
         
         cmd = "{} ".format(self.hmmer_cmd)
+        
         for opt in self.options:
             cmd = " ".join([cmd, opt])
-     
-        cmd  =  " ".join([cmd, self.hmmfile, self._seqfile])
+        
+        cmd  =  " ".join([cmd, "-A {}".format(self.align_out),
+                          "--domtblout {}".format(self.domtblout),
+                          self.hmmfile,
+                          self._seqfile])
+        
             
         return cmd.strip()
 
