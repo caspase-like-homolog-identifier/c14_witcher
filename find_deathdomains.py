@@ -55,6 +55,9 @@ class FindDeathDomains(RunHmmer):
              for hit in self.deathdomain_hits[dd]:
                   dd_dict[hit.id].append(dd)
                   
+          for k,v in dd_dict.items():
+               print("{}\t{}".format(k,"\t".join(v)))
+               
           return dd_dict                    
           
      
