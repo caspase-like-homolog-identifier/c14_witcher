@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from Bio.ExPASy import Prosite
+from Bio import SeqIO
 import argparse
 import pattern
 import re
@@ -8,7 +8,7 @@ import re
 
 class PrositePattern(object):
 
-    def __init__(self):
+    def __init__(self, alignment_fname, msa_format="stockholm", gap_char = "-"):
 
         """instatiates prosite pattern search"""
         
@@ -19,32 +19,45 @@ class PrositePattern(object):
 
         self.regex_HIS = re.compile(pattern.prosite_to_re(self.HIS_pattern))
         self.regex_CYS = re.compile(pattern.prosite_to_re(self.CYS_pattern))
-
+        self.alignment = list(SeqIO.parse(alignment_fname, msa_format))
+        self.gap_char = gap_char
         
     def Caspase_HIS(self, seq):
         """find p20 HIS residue"""
+        
         return self.regex_HIS.findall(seq)
 
     
     def Caspase_CYS(self, seq):
         """find p20 HIS residue"""
+        
         return self.regex_CYS.findall(seq)
 
+    
+    def get_dyad(self):
+        """Get a data of the dyad activate sites"""
+
+        dyad_dict = {}
+        
+        for i,seq in enumerate(self.alignment, 1):
+            cys = "".join(self.Caspase_CYS(str(seq.seq.ungap(self.gap_char).upper())))
+            his = "".join(self.Caspase_HIS(str(seq.seq.ungap(self.gap_char).upper())))
+            if not cys:cys = '-'
+            if not his:his = '-'
+            dyad_dict[seq.id] = [his, cys]
+            print("{:<20}{:<35}{:<50}".format(seq.id,his,cys))
+
+        return dyad_dict
+            
+            
     
 if  __name__ ==  '__main__':
     from Bio import SeqIO
     parser = argparse.ArgumentParser("Find P20 Cystine and Histidine dyads")
-    parser.add_argument('sequences',help ="sequences file", type=argparse.FileType('r'))
-    parser.add_argument('-f','--format', default = "fasta" ,help ="sequences format")
+    parser.add_argument('alignment',help ="sequences file", type=argparse.FileType('r'))
+    parser.add_argument('-f','--format', default = "stockholm" ,help ="sequences format")
     parser.add_argument('-g','--gap_char', default = "-" ,help ="gap character in alignment")
     args = parser.parse_args()
-
-    prosite = PrositePattern()
-    records = SeqIO.parse(args.sequences, args.format)
-    
-    j = 0
-    for i,rec in enumerate(records, 1):
-        cys = "".join(prosite.Caspase_CYS(str(rec.seq.ungap(args.gap_char))))
-        his = "".join(prosite.Caspase_HIS(str(rec.seq.ungap(args.gap_char))))
-        print("{:<20}{:<35}{:<50}".format(rec.id,his,cys))
-    
+    prosite = PrositePattern(args.alignment, args.format, args.gap_char)
+    prosite.get_dyad()
+        

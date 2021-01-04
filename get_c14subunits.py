@@ -2,6 +2,7 @@
 from Bio.Align import AlignInfo
 from Bio import pairwise2
 from Bio import AlignIO
+import pandas as pd
 import pprint
 import operator
 import collections
@@ -11,13 +12,18 @@ import warnings
 
 class C14Subunits(object):
 
-    def __init__(self, msa, dyad_dict, consensus_threshold = 0.3):
+    def __init__(self, msa_fname, dyad_dict, msa_format="stockholm", consensus_threshold = 0.3):
         
-        self.msa = msa
+        self.msa = msa =  AlignIO.read(msa_fname, msa_format)
         self.dyad_dict = dyad_dict 
         align_info = AlignInfo.SummaryInfo(self.msa)        
-        self.align_consensus = align_info.gap_consensus(threshold = consensus_threshold)
-
+        self.align_consensus = align_info.dumb_consensus(threshold = consensus_threshold)
+        score_tr = {'.': -1,'*':10 }
+        self.column_pp = { i: int(score_tr.get(score,score)) for i,score in enumerate(self.msa.column_annotations['posterior_probability'],1) }
+        self.msa_len = self.msa.get_alignment_length()
+        self.p10 = None 
+        self.p20 = None
+        
         cys_lists = []
         his_lists = []
         for seq in self.msa:
@@ -33,7 +39,7 @@ class C14Subunits(object):
         
         self.his_end = self.get_conf("Histidine", his_lists)
         self.cys_end = self.get_conf("Cysteine", cys_lists)
-        self.col_end = False
+        
         
     def get_conf(self, site, pos_lists):
                   
@@ -54,22 +60,79 @@ class C14Subunits(object):
             print(self.cys_end)
 
         #Find the find aspartic acid (D) after the catalytic active site (C)
-        self.col_end = min([ pos for pos,aa in enumerate(str(self.align_consensus),1) if (aa == 'D' and pos > self.cys_end)])
+        self.p20 = min([ pos for pos,aa in enumerate(str(self.align_consensus),1) if (aa == 'D' and pos > self.cys_end)])
 
         #print("**", self.col_end)
-        return self.msa[:,0:self.col_end]
+        return self.msa[:,0:self.p20]
 
     
-    def get_p10(self):
+    def get_p10(self, min_score=8):
+
+        """get the start of the p10 subunit """
         
-        if not self.col_end:
+        if not self.p20:
             self.get_p20()
+    
+        for pos in range(self.p20, self.msa_len):
+            pp_score = self.column_pp[pos]
+            consensus_aa = self.align_consensus[pos]
+            #print(pos, pp_score, consensus_aa)
+            if (pp_score >= min_score) and (consensus_aa in "VAI"):
+                self.p10 = pos
+                return self.msa[:,self.p10:]
+            
+
+    def get_linker(self):
         
-        score_tr = {'.': -1,'*':10 }
-        column_pp = { i: int(score_tr.get(score,score)) for i,score in enumerate(self.msa.column_annotations['posterior_probability'],1) }
-        #pprint.pprint(column_pp)
+        """get the interdomain region"""
         
+        if not self.p10:
+            self.get_p10()
+        return self.msa[:,self.p20:self.p10]
+
        
+    def get_length(self, region):
+        """ get ungapped sequence length"""
+        
+        return {seq.id: len(str(seq.seq.ungap('-')).replace('.','')) for seq in region }
+
+
+    def get_stats(self, fix_ids = False):
+
+        """
+            Generate length statistics for all regions 
+            Fix ids removes region coordinates from ids and will identify duplicates ids
+        """
+        
+        p10_len = self.get_length(self.get_p10())
+        p20_len = self.get_length(self.get_p20())
+        linker_len = self.get_length(self.get_linker())
+        p10_len_df = pd.DataFrame.from_dict(p10_len,  orient='index', columns = ["p10"])
+        p20_len_df = pd.DataFrame.from_dict(p20_len,  orient='index', columns = ["p20"])
+        linker_len = pd.DataFrame.from_dict(p20_len,  orient='index', columns = ["linker"])
+        
+        if not fix_ids:
+            return pd.concat([p20_len_df, linker_len, p10_len_df], axis=1)
+        
+        else:
+            length_stats_df = pd.concat([p20_len_df, linker_len, p10_len_df], axis=1)    
+            new_index = []
+            id_counts =  collections.defaultdict(int)
+            for ref in length_stats_df.index:
+                ref = ref.split("/")[0]
+                id_counts[ref] += 1
+                tmp_id =  id_counts[ref]
+                if (tmp_id != 1):
+                    ref = "_".join(map(str, [ref, tmp_id]))
+
+                new_index.append(ref)
+                    
+            length_stats_df.index = new_index
+            
+        return length_stats_df
+            
+        
+                          
 if __name__ == '__main__':
 
     data_fname = "MCA2.data"
@@ -81,10 +144,8 @@ if __name__ == '__main__':
              data = line[1:]
              if data:
                 dyad_dict[line[0]] = data
-
-    msa =  AlignIO.read(msa_fname, "stockholm")
-    c14 = C14Subunits(msa, dyad_dict)
-    print(c14.get_p10())
-    #stop = c14.cys_location()
-    #print(c14.msa_slice(stop, stop+10))
+                
+    c14 = C14Subunits(msa_fname, dyad_dict)
+    print(c14.get_stats(fix_ids = True))
     
+
