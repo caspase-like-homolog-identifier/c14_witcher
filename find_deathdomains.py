@@ -18,7 +18,7 @@ class FindDeathDomains(RunHmmer):
          self.dd_hmm_paths = glob.glob(dd_hmm_path)
          super().__init__("hmmsearch", None, seqfile, None, None, *hmmersearch_args)
          self.deathdomain_hits = {}
-         
+         self.dd_dict = None
 
      def deathdomains_iter(self):
 
@@ -42,24 +42,51 @@ class FindDeathDomains(RunHmmer):
           return list(SearchIO.parse(domtab, "hmmsearch3-domtab"))
 
 
+
+     def print_deathdomains(self):
+
+     
+         if not self.dd_dict:
+               return None
+          
+         for k,v in self.dd_dict.items():
+             print("{}\t{}".format(k,"\t".join(v)))
+          
+          
+     
      @property
-     def deathdomains(self):
+     def DeathDomains(self):
 
 
           #print(self.deathdomain_hits)
           if not self.deathdomain_hits:
-               self.get_deathdomains()
+               self.deathdomains_iter()
           #create dict using seq.ids as keys and empty lists as values
-          dd_dict = collections.defaultdict(list)
+          self.dd_dict = collections.defaultdict(list)
           for dd in self.deathdomain_hits:
              for hit in self.deathdomain_hits[dd]:
-                  dd_dict[hit.id].append(dd)
-                  
-          for k,v in dd_dict.items():
-               print("{}\t{}".format(k,"\t".join(v)))
-               
-          return dd_dict                    
+                  self.dd_dict[hit.id].append(dd)
+                       
+          return self.dd_dict                    
+
+     
+     def c14merge(c14seq_dict1, c14seq_dict2):
           
+         merged = c14seq_dict1.copy()
+         
+         for key in merged:
+             try:
+                merged[key] = merged[key] + c14seq_dict2.get(key,[])
+             except KeyError:
+                merged[key] = c14seq_dict2.get(key,[])
+
+         #Make sure we did not miss any keys in dict2
+         merged.update(c14seq_dict2)
+                  
+         return merged
+               
+ 
+     
      
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
@@ -68,5 +95,10 @@ if __name__ == '__main__':
     args = parser.parse_args()    
     dd = FindDeathDomains(args.seqfile, args.hmm_glob)
     dd.deathdomains_iter()
-    dd.deathdomains
+    dict1 = dd.DeathDomains
+    #dict2 = {k:v for k,v in dict1.items() }
+    dict2 = dict1.copy()
+    dict1.update({'outside' :['Another', 'fake', 'list']})
+    dict2.update({'foreign' :['I', 'a', 'fake', 'list']})
+    FindDeathDomains.dumb_merge(dict1, dict2)
     
