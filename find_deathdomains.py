@@ -94,11 +94,4 @@ if __name__ == '__main__':
     parser.add_argument('-g','--hmm_glob', default="/opt/DB_REF/Pfam/Ig*hmm")
     args = parser.parse_args()    
     dd = FindDeathDomains(args.seqfile, args.hmm_glob)
-    dd.deathdomains_iter()
-    dict1 = dd.DeathDomains
-    #dict2 = {k:v for k,v in dict1.items() }
-    dict2 = dict1.copy()
-    dict1.update({'outside' :['Another', 'fake', 'list']})
-    dict2.update({'foreign' :['I', 'a', 'fake', 'list']})
-    FindDeathDomains.dumb_merge(dict1, dict2)
-    
+    dd.deathdomains_iter() 
