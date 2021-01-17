@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from Bio import SeqIO
+import pandas as pd
 import argparse
 import pattern
 import re
@@ -37,17 +38,15 @@ class PrositePattern(object):
     def get_dyad(self):
         """Get a data of the dyad activate sites"""
 
-        dyad_dict = {}
-        
-        for i,seq in enumerate(self.alignment, 1):
-            cys = "".join(self.Caspase_CYS(str(seq.seq.ungap(self.gap_char).upper())))
-            his = "".join(self.Caspase_HIS(str(seq.seq.ungap(self.gap_char).upper())))
-            if not cys:cys = '-'
-            if not his:his = '-'
-            dyad_dict[seq.id] = [his, cys]
-            print("{:<20}{:<35}{:<50}".format(seq.id,his,cys))
 
-        return dyad_dict
+        columns = ['Seq_ID', 'Caspase_CYS', 'CASPASE_HIS']
+        dyads =  pd.DataFrame(columns = columns)
+        for i,seq in enumerate(self.alignment, 1):
+             cys = "".join(self.Caspase_CYS(str(seq.seq.ungap(self.gap_char).upper())))
+             his = "".join(self.Caspase_HIS(str(seq.seq.ungap(self.gap_char).upper())))
+             dyads = dyads.append(pd.Series(index = columns, name = seq.id, data=[seq.id, cys, his]))
+             
+        return dyads
             
             
     
