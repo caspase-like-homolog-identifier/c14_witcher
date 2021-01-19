@@ -2,6 +2,7 @@
 from Bio import SeqIO
 import pandas as pd
 import argparse
+import pattern
 import re
 
 
