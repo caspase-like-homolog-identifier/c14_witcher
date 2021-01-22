@@ -42,18 +42,7 @@ class FindDeathDomains(RunHmmer):
                    
      def has_deathdomain(self, domtab):
 
-          return list(SearchIO.parse(domtab, "hmmsearch3-domtab"))
-
-
-
-     def print_deathdomains(self):
-     
-         if not self.dd_dict:
-               return None
-          
-         for k,v in self.dd_dict.items():
-             print("{}\t{}".format(k,"\t".join(v)))
-          
+          return list(SearchIO.parse(domtab, "hmmsearch3-domtab"))          
           
      
      def DeathDomains(self, feature):
@@ -82,13 +71,13 @@ class FindDeathDomains(RunHmmer):
              for hit in self.deathdomain_hits[dd]:
                  dd_dict[hit.id].append(vars(hit)[feature])
 
-         self.dd = pd.DataFrame(columns = ['Seq_ID']+self.dd_names)
+         self.deathdomains = pd.DataFrame(columns = ['Seq_ID']+self.dd_names)
          for seq_id, values in dd_dict.items():
               
-             self.dd = self.dd.append(pd.Series([seq_id]+values, index= ['Seq_ID']+self.dd_names, name = seq_id))
+             self.deathdomains = self.dd.append(pd.Series([seq_id]+values, index= ['Seq_ID']+self.dd_names, name = seq_id))
              
 
-         return self.dd
+         return self.deathdomains
            
  
      
