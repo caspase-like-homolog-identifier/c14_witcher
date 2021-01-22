@@ -2,6 +2,7 @@
 
 from run_hmmer import RunHmmer
 from Bio import SearchIO
+import pandas as pd
 import collections
 import random
 import tempfile
@@ -21,10 +22,11 @@ class FindDeathDomains(RunHmmer):
          self.deathdomain_hits = {}
          self.dd_dict = None
 
+         
      def deathdomains_iter(self):
 
           """ iterate over the deathdomains """
-          dd_names  = set()
+          self.dd_names = []
           for hmm_file in self.dd_hmm_paths:
                self.hmmfile = hmm_file
                tmp1, tmp2 = [ tempfile.NamedTemporaryFile(delete=False) for _ in range(2) ]
@@ -35,7 +37,7 @@ class FindDeathDomains(RunHmmer):
 
                if deathdomain:
                     self.deathdomain_hits[deathdomain[0].id] = deathdomain[0].hits 
-                    dd_names.add(deathdomain[0].id)
+                    self.dd_names.append(deathdomain[0].id)
                
                    
      def has_deathdomain(self, domtab):
@@ -74,32 +76,20 @@ class FindDeathDomains(RunHmmer):
          if not self.deathdomain_hits:
               self.deathdomains_iter()
          #create dict using seq.ids as keys and empty lists as values
-         self.dd_dict = collections.defaultdict(list)
+         dd_dict = collections.defaultdict(list)
          for dd in self.deathdomain_hits:
              #print(dd)
              for hit in self.deathdomain_hits[dd]:
-                 self.dd_dict[hit.id].append(vars(hit)[feature])
+                 dd_dict[hit.id].append(vars(hit)[feature])
 
-         pprint.pprint(pd.DataFrame(self.dd_dict))
-         
-         #return self.dd_dict                    
+         self.dd = pd.DataFrame(columns = ['Seq_ID']+self.dd_names)
+         for seq_id, values in dd_dict.items():
+              
+             self.dd = self.dd.append(pd.Series([seq_id]+values, index= ['Seq_ID']+self.dd_names, name = seq_id))
+             
 
-     
-     def c14merge(c14seq_dict1, c14seq_dict2):
-          
-         merged = c14seq_dict1.copy()
-         
-         for key in merged:
-             try:
-                merged[key] = merged[key] + c14seq_dict2.get(key,[])
-             except KeyError:
-                merged[key] = c14seq_dict2.get(key,[])
-
-         #Make sure we did not miss any keys in dict2
-         merged.update(c14seq_dict2)
-                  
-         return merged
-               
+         return self.dd
+           
  
      
      
