@@ -32,7 +32,7 @@ class C14Subunits(object):
                   cys_align = pairwise2.align.localms(seq.seq, cys_site, 5, -4, -2, -1, one_alignment_only = True)
                   aa_seq, stop = cys_align[0][0:5:4]
                   self.get_position(aa_seq, stop, "C")
-                  print(cys_align[0][4])
+                  #print(cys_align[0][4])
                   #subseq = aa_seq[stop:]
                   #print(subseq.index('C'))
                   #print(aa_seq[stop:]) #stop[aa_seq:])
@@ -50,10 +50,11 @@ class C14Subunits(object):
     def get_position(self, aa_seq, stop, residue):
 
         try:
-            print(aa_seq.index(residue, stop))
-            
-        except ValueError:
+            #print(aa_seq.index(residue, stop))
             print(aa_seq[stop:])
+        except ValueError:
+            pass
+            #print(aa_seq[stop:])
         
         
     def get_conf(self, site, pos_lists):
