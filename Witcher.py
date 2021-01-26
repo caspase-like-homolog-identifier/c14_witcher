@@ -50,34 +50,34 @@ out, err = hmmsearch()
 prosite = PrositePattern(stockholm)
 
 
-# In[15]:
+# In[7]:
 
 
 dyads = prosite.get_dyad()
 
 
-# In[16]:
+# In[8]:
 
 
 dyads
 
 
-# In[17]:
+# In[9]:
 
 
 deathdomains = FindDeathDomains(inseq, "/opt/DB_REF/Pfam/Ig*hmm")
 
 
-# In[18]:
+# In[10]:
 
 
 deathdomains.deathdomains_iter()
 
 
-# In[26]:
+# In[11]:
 
 
-deathdomains.print_deathdomains()
+deathdomains.deathdomains
 
 
 # In[27]:
