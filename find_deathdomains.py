@@ -74,7 +74,7 @@ class FindDeathDomains(RunHmmer):
          self.deathdomains = pd.DataFrame(columns = ['Seq_ID']+self.dd_names)
          for seq_id, values in dd_dict.items():
               
-             self.deathdomains = self.dd.append(pd.Series([seq_id]+values, index= ['Seq_ID']+self.dd_names, name = seq_id))
+             self.deathdomains = self.deathdomains.append(pd.Series([seq_id]+values, index= ['Seq_ID']+self.dd_names, name = seq_id))
              
 
          return self.deathdomains
