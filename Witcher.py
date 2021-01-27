@@ -77,46 +77,37 @@ deathdomains.deathdomains_iter()
 # In[11]:
 
 
-deathdomains.deathdomains
+#AVAILABLE FEATURES FOR DEATH DOMAINS
+# _id                                                                                                                                                                         
+# _id_alt                                                                                                                                                                     
+# _query_id                                                                                                                                                                   
+# _description                                                                                                                                                                
+# _description_alt                                                                                                                                                            
+# _query_description                                                                                                                                                          
+# attributes                                                                                                                                                                  
+# dbxrefs                                                                                                                                                                     
+# _items                                                                                                                                                                      
+# accession                                                                                                                                                                   
+# seq_len                                                                                                                                                                     
+# evalue                                                                                                                                                                      
+# bitscore                                                                                                                                                                    
+# bias 
+dd = deathdomains.DeathDomains('evalue')
 
 
-# In[27]:
-
-
-dd_dict = deathdomains.DeathDomains
-
-
-# In[29]:
-
-
-vars(str)
-
-
-# In[28]:
-
-
-dd_dict
-
-
-# In[14]:
-
-
-FindDeathDomains.dumb_merge(dyads, dd_dict)
-
-
-# In[ ]:
+# In[17]:
 
 
 dd
 
 
-# In[ ]:
+# In[18]:
 
 
 c14 = C14Subunits(stockholm, dyads)
 
 
-# In[ ]:
+# In[19]:
 
 
 p10 = c14.get_p10()
