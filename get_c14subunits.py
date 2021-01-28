@@ -30,16 +30,15 @@ class C14Subunits(object):
         his_lists = []
         
         for seq in self.msa:
-            if seq.id in dyad_df.index:         
-               his_site, cys_site = dyad_df.loc[seq.id,["Caspase_CYS", "CASPASE_HIS"]]
-               if cys_site != np.nan:
+            if seq.id in dyad_df.index:
+               cys_site, his_site = dyad_df.loc[seq.id,["Caspase_CYS", "CASPASE_HIS"]]
+               if cys_site:
                    cys_align = pairwise2.align.localms(seq.seq, str(cys_site), 5, -4, -2, -1, one_alignment_only = True)
-                   if not cys_align:
-                       continue
                    aa_seq, stop = cys_align[0][0:5:4]
                    self.get_position(aa_seq, stop, "C")
                    cys_lists.append(cys_align[0][4])
-               if his_site != np.nan:
+               if his_site:
+                   print(his_site, bool(his_site))
                    his_align = pairwise2.align.localms(seq.seq, str(his_site), 5, -4, -2, -1, one_alignment_only = True)
                    his_lists.append(his_align[0][4])
 
@@ -51,8 +50,9 @@ class C14Subunits(object):
     def get_position(self, aa_seq, stop, residue):
 
         try:
+            pass
             #print(aa_seq.index(residue, stop))
-            print(aa_seq[stop:])
+            #print(aa_seq[stop:])
         except ValueError:
             pass
             #print(aa_seq[stop:])
