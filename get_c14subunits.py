@@ -14,10 +14,11 @@ import warnings
 class C14Subunits(object):
 
     def __init__(self, msa_fname, dyad_df, msa_format="stockholm", consensus_threshold = 0.3):
+
+        """Get alignment and dataframe correspondind dyads and analyse for p10 and p20 subunit as well a linker"""
         
-        self.msa = msa =  AlignIO.read(msa_fname, msa_format)
-        self.dyad_df = dyad_df.astype({'Seq_ID':str, 'Caspase_CYS':str, 'CASPASE_HIS':str})
-        print(self.dyad_df.dtypes)
+        self.msa = msa = AlignIO.read(msa_fname, msa_format)
+        dyad_df.index = list(map(lambda index: index.split('/')[0], dyad_df.Seq_ID))
         align_info = AlignInfo.SummaryInfo(self.msa)        
         self.align_consensus = align_info.dumb_consensus(threshold = consensus_threshold)
         score_tr = {'.': -1,'*':10 }
@@ -25,29 +26,25 @@ class C14Subunits(object):
         self.msa_len = self.msa.get_alignment_length()
         self.p10 = None 
         self.p20 = None
-        
         cys_lists = []
         his_lists = []
         for seq in self.msa:
-            his_site, cys_site = self.dyad_df.get(seq.id, (np.nan,np.nan))
-            print(his_site, cys_site)
-            if cys_site != np.nan:
-                  cys_align = pairwise2.align.localms(seq.seq, str(cys_site), 5, -4, -2, -1, one_alignment_only = True)
-                  aa_seq, stop = cys_align[0][0:5:4]
-                  self.get_position(aa_seq, stop, "C")
-                  #print(cys_align[0][4])
-                  #subseq = aa_seq[stop:]
-                  #print(subseq.index('C'))
-                  #print(aa_seq[stop:]) #stop[aa_seq:])
-                  cys_lists.append(cys_align[0][4])
-                  #print(seq.id)
-                  #print(pairwise2.format_alignment(*cys_align[0]))
-            if his_site != np.nan:
-                  his_align = pairwise2.align.localms(seq.seq, str(his_site), 5, -4, -2, -1, one_alignment_only = True)
-                  his_lists.append(his_align[0][4])
-        
+            if seq.id in dyad_df.index:         
+               his_site, cys_site = dyad_df.loc[seq_id,["Caspase_CYS", "CASPASE_HIS"]]
+               if cys_site != np.nan:
+                   print(seq.id, str(cys_site))
+                   cys_align = pairwise2.align.localms(seq.seq, str(cys_site), 5, -4, -2, -1, one_alignment_only = True)
+                   print(cys_align)
+                   aa_seq, stop = cys_align[0][0:5:4]
+                   self.get_position(aa_seq, stop, "C")
+                   cys_lists.append(cys_align[0][4])
+               if his_site != np.nan:
+                   his_align = pairwise2.align.localms(seq.seq, str(his_site), 5, -4, -2, -1, one_alignment_only = True)
+                   his_lists.append(his_align[0][4])
+
         self.his_end = self.get_conf("Histidine", his_lists)
         self.cys_end = self.get_conf("Cysteine", cys_lists)
+
 
 
     def get_position(self, aa_seq, stop, residue):
@@ -154,11 +151,11 @@ class C14Subunits(object):
                           
 if __name__ == '__main__':
 
-    data_fname = "MCA2.data"
-    msa_fname = "MCA2.sto"
-    dyad_df = {}
+    data_fname = "dyad.tsv"
+    msa_fname = "MCAx.sto"
     
-    dyad_df = pd.read_csv("dyad.tsv", sep ="\t" )
+    dyad_df = pd.read_csv(data_fname, sep ="\t" )
+    
         # for line in fp:
         #      line = line.split()
         #      data = line[1:]
