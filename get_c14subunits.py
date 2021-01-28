@@ -18,7 +18,7 @@ class C14Subunits(object):
         """Get alignment and dataframe correspondind dyads and analyse for p10 and p20 subunit as well a linker"""
         
         self.msa = msa = AlignIO.read(msa_fname, msa_format)
-        dyad_df.index = list(map(lambda index: index.split('/')[0], dyad_df.Seq_ID))
+        dyad_df.index = dyad_df.Seq_ID
         align_info = AlignInfo.SummaryInfo(self.msa)        
         self.align_consensus = align_info.dumb_consensus(threshold = consensus_threshold)
         score_tr = {'.': -1,'*':10 }
@@ -28,13 +28,14 @@ class C14Subunits(object):
         self.p20 = None
         cys_lists = []
         his_lists = []
+        
         for seq in self.msa:
             if seq.id in dyad_df.index:         
-               his_site, cys_site = dyad_df.loc[seq_id,["Caspase_CYS", "CASPASE_HIS"]]
+               his_site, cys_site = dyad_df.loc[seq.id,["Caspase_CYS", "CASPASE_HIS"]]
                if cys_site != np.nan:
-                   print(seq.id, str(cys_site))
                    cys_align = pairwise2.align.localms(seq.seq, str(cys_site), 5, -4, -2, -1, one_alignment_only = True)
-                   print(cys_align)
+                   if not cys_align:
+                       continue
                    aa_seq, stop = cys_align[0][0:5:4]
                    self.get_position(aa_seq, stop, "C")
                    cys_lists.append(cys_align[0][4])
