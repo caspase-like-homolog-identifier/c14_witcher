@@ -3,6 +3,7 @@ from Bio.Align import AlignInfo
 from Bio import pairwise2
 from Bio import AlignIO
 import pandas as pd
+import numpy as np
 import pprint
 import operator
 import collections
@@ -12,10 +13,11 @@ import warnings
 
 class C14Subunits(object):
 
-    def __init__(self, msa_fname, dyad_dict, msa_format="stockholm", consensus_threshold = 0.3):
+    def __init__(self, msa_fname, dyad_df, msa_format="stockholm", consensus_threshold = 0.3):
         
         self.msa = msa =  AlignIO.read(msa_fname, msa_format)
-        self.dyad_dict = dyad_dict 
+        self.dyad_df = dyad_df.astype({'Seq_ID':str, 'Caspase_CYS':str, 'CASPASE_HIS':str})
+        print(self.dyad_df.dtypes)
         align_info = AlignInfo.SummaryInfo(self.msa)        
         self.align_consensus = align_info.dumb_consensus(threshold = consensus_threshold)
         score_tr = {'.': -1,'*':10 }
@@ -27,9 +29,10 @@ class C14Subunits(object):
         cys_lists = []
         his_lists = []
         for seq in self.msa:
-            his_site, cys_site = self.dyad_dict.get(seq.id, ("-","-",))
-            if cys_site != '-':
-                  cys_align = pairwise2.align.localms(seq.seq, cys_site, 5, -4, -2, -1, one_alignment_only = True)
+            his_site, cys_site = self.dyad_df.get(seq.id, (np.nan,np.nan))
+            print(his_site, cys_site)
+            if cys_site != np.nan:
+                  cys_align = pairwise2.align.localms(seq.seq, str(cys_site), 5, -4, -2, -1, one_alignment_only = True)
                   aa_seq, stop = cys_align[0][0:5:4]
                   self.get_position(aa_seq, stop, "C")
                   #print(cys_align[0][4])
@@ -39,8 +42,8 @@ class C14Subunits(object):
                   cys_lists.append(cys_align[0][4])
                   #print(seq.id)
                   #print(pairwise2.format_alignment(*cys_align[0]))
-            if his_site != '-':
-                  his_align = pairwise2.align.localms(seq.seq, his_site, 5, -4, -2, -1, one_alignment_only = True)
+            if his_site != np.nan:
+                  his_align = pairwise2.align.localms(seq.seq, str(his_site), 5, -4, -2, -1, one_alignment_only = True)
                   his_lists.append(his_align[0][4])
         
         self.his_end = self.get_conf("Histidine", his_lists)
@@ -153,15 +156,16 @@ if __name__ == '__main__':
 
     data_fname = "MCA2.data"
     msa_fname = "MCA2.sto"
-    dyad_dict = {}    
-    with open(data_fname) as fp:
-        for line in fp:
-             line = line.split()
-             data = line[1:]
-             if data:
-                dyad_dict[line[0]] = data
+    dyad_df = {}
+    
+    dyad_df = pd.read_csv("dyad.tsv", sep ="\t" )
+        # for line in fp:
+        #      line = line.split()
+        #      data = line[1:]
+        #      if data:
+        #         dyad_df[line[0]] = data
                 
-    c14 = C14Subunits(msa_fname, dyad_dict)
+    c14 = C14Subunits(msa_fname, dyad_df)
     #print(c14.get_stats(fix_ids = True))
     
 
