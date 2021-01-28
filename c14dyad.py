@@ -4,7 +4,7 @@ import pandas as pd
 import argparse
 import pattern
 import re
-
+import numpy as np
 
 
 class PrositePattern(object):
@@ -44,6 +44,8 @@ class PrositePattern(object):
         for i,seq in enumerate(self.alignment, 1):
              cys = "".join(self.Caspase_CYS(str(seq.seq.ungap(self.gap_char).upper())))
              his = "".join(self.Caspase_HIS(str(seq.seq.ungap(self.gap_char).upper())))
+             cys = cys if cys else np.nan
+             his = his if his else np.nan
              dyads = dyads.append(pd.Series(index = columns, name = seq.id, data=[seq.id, cys, his]))
              
         return dyads
