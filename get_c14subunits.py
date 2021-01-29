@@ -26,37 +26,34 @@ class C14Subunits(object):
         self.msa_len = self.msa.get_alignment_length()
         self.p10 = None 
         self.p20 = None
-        cys_lists = []
-        his_lists = []
+        self.cys_indexes = []
+        self.his_indexes = []
         
         for seq in self.msa:
             if seq.id in dyad_df.index:
                cys_site, his_site = dyad_df.loc[seq.id,["Caspase_CYS", "CASPASE_HIS"]]
-               if cys_site:
+               if pd.notna(cys_site):
                    cys_align = pairwise2.align.localms(seq.seq, str(cys_site), 5, -4, -2, -1, one_alignment_only = True)
-                   aa_seq, stop = cys_align[0][0:5:4]
-                   self.get_position(aa_seq, stop, "C")
-                   cys_lists.append(cys_align[0][4])
-               if his_site:
-                   print(his_site, bool(his_site))
+                   cys_seq, c_stop = cys_align[0][0:5:4]
+                   c_index = self.get_position(cys_seq, cys_site, c_stop, "C")
+                   self.cys_indexes.append(c_index)
+               if pd.notna(his_site):
                    his_align = pairwise2.align.localms(seq.seq, str(his_site), 5, -4, -2, -1, one_alignment_only = True)
-                   his_lists.append(his_align[0][4])
+                   his_seq, h_stop = his_align[0][0:5:4]
+                   h_index = self.get_position(his_seq, his_site, h_stop, "H")
+                   self.his_indexes.append(h_index)
 
-        self.his_end = self.get_conf("Histidine", his_lists)
-        self.cys_end = self.get_conf("Cysteine", cys_lists)
+        self.his_end = self.get_conf("Histidine", self.his_indexes)
+        self.cys_end = self.get_conf("Cysteine", self.cys_indexes)
 
-
-
-    def get_position(self, aa_seq, stop, residue):
-
-        try:
-            pass
-            #print(aa_seq.index(residue, stop))
-            #print(aa_seq[stop:])
-        except ValueError:
-            pass
-            #print(aa_seq[stop:])
         
+    def get_position(self, aa_seq, dyad_site, stop, residue):
+
+        start = stop - len(dyad_site)
+        
+            
+        return aa_seq.rfind(residue, start, stop)
+                
         
     def get_conf(self, site, pos_lists):
                   
@@ -162,7 +159,7 @@ if __name__ == '__main__':
         #      data = line[1:]
         #      if data:
         #         dyad_df[line[0]] = data
-                
+           
     c14 = C14Subunits(msa_fname, dyad_df)
     #print(c14.get_stats(fix_ids = True))
     
